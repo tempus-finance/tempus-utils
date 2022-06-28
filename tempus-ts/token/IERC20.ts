@@ -1,6 +1,6 @@
-import { Decimal } from "./Decimal";
-import { Numberish } from "./DecimalUtils";
-import { Addressable } from "./ContractBase";
+import { Decimal } from "../utils/Decimal";
+import { Numberish } from "../utils/DecimalUtils";
+import { Addressable } from "../utils/ContractBase";
 
 /**
  * Interface for ERC20-like contracts

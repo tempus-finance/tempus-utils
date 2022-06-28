@@ -1,4 +1,4 @@
-import { Numberish } from "./DecimalUtils";
+import { Numberish } from "../utils/DecimalUtils";
 import { ERC20 } from "./ERC20";
 import { Signer, Addressable, addressOf } from "../utils/ContractBase";
 import { splitSignature } from "ethers/lib/utils";
