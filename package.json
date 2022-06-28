@@ -1,10 +1,10 @@
 {
   "name": "@tempus-labs/tempus-utils",
   "description": "Tempus shared utility contracts and helpers",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "files": [
     "/contracts/**/*.sol",
-    "/tempus-utils/**/*.ts"
+    "/tempus-ts/**/*.ts"
   ],
   "repository": {
     "type": "git",
