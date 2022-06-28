@@ -1,10 +1,10 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { addressOf, Signer } from "../../../tempus-sdk/utils/ContractBase";
-import { blockTimestamp, expectRevert, increaseTime, setEvmTime } from "../../../tempus-sdk/utils/Utils";
-import { ERC20 } from "../../../tempus-sdk/utils/ERC20";
-import { ERC20OwnerMintable } from "../../../tempus-sdk/tempus/ERC20OwnerMintable";
-import { ERC20Vesting, VestingTerms } from "../../../tempus-sdk/tempus/ERC20Vesting";
+import { addressOf, Signer } from "../../../tempus-ts/utils/ContractBase";
+import { blockTimestamp, expectRevert, increaseTime, setEvmTime } from "../../../tempus-ts/utils/Utils";
+import { ERC20 } from "../../../tempus-ts/token/ERC20";
+import { ERC20OwnerMintable } from "../../../tempus-ts/token/ERC20OwnerMintable";
+import { ERC20Vesting, VestingTerms } from "../../../tempus-ts/token/ERC20Vesting";
 
 describe("ERC20 Vesting", async () => {
   let owner:Signer, user:Signer, user2:Signer;

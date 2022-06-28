@@ -1,8 +1,8 @@
 import { Contract } from "ethers";
-import { ContractBase } from "../tempus-sdk/utils/ContractBase";
+import { ContractBase } from "../tempus-ts/utils/ContractBase";
 import { expect } from "chai";
-import { Numberish, toWei } from "../tempus-sdk/utils/DecimalUtils";
-import { increaseTime } from "../tempus-sdk/utils/Utils";
+import { Numberish, toWei } from "../tempus-ts/utils/DecimalUtils";
+import { increaseTime } from "../tempus-ts/utils/Utils";
 
 describe("MovingAverage", async () => {
   enum MAType {

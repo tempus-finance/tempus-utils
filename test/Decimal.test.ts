@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { Decimal, decimal } from "../tempus-sdk/utils/Decimal";
-import { Numberish, formatDecimal, parseDecimal } from "../tempus-sdk/utils/DecimalUtils";
+import { Decimal, decimal } from "../tempus-ts/utils/Decimal";
+import { Numberish, formatDecimal, parseDecimal } from "../tempus-ts/utils/DecimalUtils";
 import { BigNumber } from "ethers";
 
 describe("Decimal", () =>

@@ -1,7 +1,7 @@
 import { Contract } from "ethers";
 import { Numberish } from "../utils/DecimalUtils";
 import { Signer, Addressable, addressOf } from "../utils/ContractBase";
-import { ERC20 } from "../utils/ERC20";
+import { ERC20 } from "./ERC20";
 
 /**
  * Type safe wrapper of ERC20OwnerMintableToken

@@ -9,8 +9,10 @@
     "forceConsistentCasingInFileNames": true,  /* Disallow inconsistently-cased references to the same file. */
   },
   "include": [
-    "tempus/**/*.ts",
-    "utils/**/*.ts"
+    "tempus-otc/**/*.ts",
+    "utils/**/*.ts", 
+    "token/ERC20.ts", 
+    "token/ERC20OwnerMintable.ts"  
   ],
   "exclude": [
     "node_modules",

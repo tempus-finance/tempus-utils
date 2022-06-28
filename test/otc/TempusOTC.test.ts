@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import { Signer } from "../../tempus-sdk/utils/ContractBase";
-import { TempusOTC } from "../../tempus-sdk/tempus/TempusOTC";
+import { Signer } from "../../tempus-ts/utils/ContractBase";
+import { TempusOTC } from "../../tempus-ts/tempus-otc/TempusOTC";
 import { ethers } from "hardhat";
-import { ERC20OwnerMintable } from "../../tempus-sdk/tempus/ERC20OwnerMintable";
-import { expectRevert } from "../../tempus-sdk/utils/Utils";
+import { ERC20OwnerMintable } from "../../tempus-ts/token/ERC20OwnerMintable";
+import { expectRevert } from "../../tempus-ts/utils/Utils";
 
 describe("TempusOTC", async() =>
 {

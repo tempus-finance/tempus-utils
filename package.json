@@ -1,9 +1,10 @@
 {
-  "name": "tempus-shared-contracts",
-  "description": "Tempus shared utility contracts",
+  "name": "@tempus/tempus-utils",
+  "description": "Tempus shared utility contracts and helpers",
   "version": "1.0.0",
   "files": [
-    "/contracts/**/*.sol"
+    "/contracts/**/*.sol",
+    "/tempus-utils/*.ts"
   ],
   "scripts": {
     "compile": "hardhat compile",

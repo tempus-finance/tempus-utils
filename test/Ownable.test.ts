@@ -1,8 +1,8 @@
 import { Contract } from "ethers";
-import { ContractBase, Signer } from "../tempus-sdk/utils/ContractBase";
+import { ContractBase, Signer } from "../tempus-ts/utils/ContractBase";
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { expectRevert } from "../tempus-sdk/utils/Utils";
+import { expectRevert } from "../tempus-ts/utils/Utils";
 
 describe("Ownable", async () => {
   let ownable: Contract;
