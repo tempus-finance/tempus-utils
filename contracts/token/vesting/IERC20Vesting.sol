@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-pragma solidity 0.8.10;
+pragma solidity ^0.8.0;
 
 interface IERC20Vesting {
     /// @dev Vesting Terms for ERC tokens
