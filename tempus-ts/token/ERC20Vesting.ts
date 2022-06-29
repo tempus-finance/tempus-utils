@@ -6,6 +6,7 @@ import { ERC20 } from "./ERC20";
 export interface VestingTerms {
   startTime:number;
   period:number;
+  firstClaimableAt: number;
   amount: Numberish;
   claimed: Numberish;
 }
@@ -24,6 +25,7 @@ export class ERC20Vesting extends ContractBase {
     return {
       startTime: terms.startTime,
       period: terms.period,
+      firstClaimableAt: terms.firstClaimableAt,
       amount: this.toBigNum(terms.amount).toString(),
       claimed: this.toBigNum(terms.claimed).toString()
     }
@@ -78,6 +80,7 @@ export class ERC20Vesting extends ContractBase {
     return {
       startTime: terms.startTime,
       period: terms.period,
+      firstClaimableAt: terms.firstClaimableAt,
       amount: this.fromBigNum(terms.amount),
       claimed: this.fromBigNum(terms.claimed)
     }

@@ -35,6 +35,8 @@ contract ERC20Vesting is IERC20Vesting {
         require(receiver != address(0), "Receiver cannot be 0.");
         require(terms.amount > 0, "Amount must be > 0.");
         require(terms.startTime != 0, "Start time must be set.");
+        require(terms.firstClaimableAt >= terms.startTime, "firstClaimableAt should be >= startTime.");
+        require(terms.firstClaimableAt <= (terms.startTime + terms.period), "firstClaimableAt should be <= end time.");
         require(terms.period > 0, "Period must be set.");
         require(terms.claimed == 0, "Can not start vesting with already claimed tokens.");
         assert(isScheduleValid(terms));
@@ -119,7 +121,7 @@ contract ERC20Vesting is IERC20Vesting {
     }
 
     function _claimable(VestingTerms memory terms) private view returns (uint256 claimableTokens) {
-        if (terms.startTime < block.timestamp) {
+        if (terms.firstClaimableAt <= block.timestamp) {
             uint256 timePassed = block.timestamp - terms.startTime;
             uint256 maxTokens = (block.timestamp >= terms.startTime + terms.period)
                 ? terms.amount

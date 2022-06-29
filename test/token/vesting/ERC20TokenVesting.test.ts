@@ -5,6 +5,7 @@ import { blockTimestamp, expectRevert, increaseTime, setEvmTime } from "../../..
 import { ERC20 } from "../../../tempus-ts/token/ERC20";
 import { ERC20OwnerMintable } from "../../../tempus-ts/token/ERC20OwnerMintable";
 import { ERC20Vesting, VestingTerms } from "../../../tempus-ts/token/ERC20Vesting";
+import { start } from "repl";
 
 describe("ERC20 Vesting", async () => {
   let owner:Signer, user:Signer, user2:Signer;
@@ -45,43 +46,55 @@ describe("ERC20 Vesting", async () => {
       (await expectRevert(vesting.startVesting(
         owner,
         "0x0000000000000000000000000000000000000000",
-        {startTime: 0, period: period, amount: 30, claimed: 0}
+        {startTime: 0, period: period, firstClaimableAt: 0, amount: 30, claimed: 0}
       ))).to.equal("Receiver cannot be 0.");
 
       (await expectRevert(vesting.startVesting(
         owner,
         user,
-        {startTime: 0, period: period, amount: 30, claimed: 0}
+        {startTime: 0, period: period, firstClaimableAt: 0, amount: 30, claimed: 0}
       ))).to.equal("Start time must be set.");
 
       (await expectRevert(vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: 0, amount: 30, claimed: 0}
+        {startTime: startTime, period: 0, firstClaimableAt: startTime, amount: 30, claimed: 0}
       ))).to.equal("Period must be set.");
 
       (await expectRevert(vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 0, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: (startTime - 1), amount: 30, claimed: 0}
+      ))).to.equal("firstClaimableAt should be >= startTime.");
+
+      (await expectRevert(vesting.startVesting(
+        owner,
+        user,
+        {startTime: startTime, period: period, firstClaimableAt: (startTime + period + 1), amount: 30, claimed: 0}
+      ))).to.equal("firstClaimableAt should be <= end time.");
+
+      (await expectRevert(vesting.startVesting(
+        owner,
+        user,
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 0, claimed: 0}
       ))).to.equal("Amount must be > 0.");
 
       (await expectRevert(vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 1}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 1}
       ))).to.equal("Can not start vesting with already claimed tokens.");
 
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       (await expectRevert(vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       ))).to.equal("Vesting already started for account.");
     });
 
@@ -97,13 +110,13 @@ describe("ERC20 Vesting", async () => {
       (await expectRevert(vesting.startVestingBatch(
         owner,
         [user],
-        [{startTime: 1, period: 1, amount: 30, claimed: 0}, {startTime: 1, period: 1, amount: 30, claimed: 0}]
+        [{startTime: 1, period: 1, firstClaimableAt: 1, amount: 30, claimed: 0}, {startTime: 1, period: 1, firstClaimableAt: 1, amount: 30, claimed: 0}]
       ))).to.equal("Terms and receivers must have same length.");
 
       (await expectRevert(vesting.startVestingBatch(
         owner,
         [user, user2],
-        [{startTime: 1, period: 1, amount: 30, claimed: 0}]
+        [{startTime: 1, period: 1, firstClaimableAt: 1, amount: 30, claimed: 0}]
       ))).to.equal("Terms and receivers must have same length.");
     });
 
@@ -125,10 +138,11 @@ describe("ERC20 Vesting", async () => {
       (await expectRevert(vesting.claim(user, 0))).to.equal("Claiming 0 tokens.");
       (await expectRevert(vesting.claim(user, 10))).to.equal("No vesting data for sender.");
 
+      const startTime = await blockTimestamp();
       await vesting.startVesting(
         owner,
         user,
-        {startTime: await blockTimestamp(), period: DAY * 30, amount: 30, claimed: 0}
+        {startTime: startTime, period: DAY * 30, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       (await expectRevert(vesting.claim(user, 100))).to.equal("Claiming amount exceeds allowed tokens.");
@@ -146,15 +160,16 @@ describe("ERC20 Vesting", async () => {
       await expect(vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       )).to.emit(vesting.contract, "VestingAdded").withArgs(
         addressOf(user), 
-        [startTime, period, vesting.toBigNum(30), 0]
+        [startTime, period, startTime, vesting.toBigNum(30), 0]
       );
 
       const terms:VestingTerms = await vesting.getVestingTerms(user);
       expect(terms.amount).to.equal(30);
       expect(terms.startTime).to.equal(startTime);
+      expect(terms.firstClaimableAt).to.equal(startTime);
       expect(terms.period).to.equal(period);
       expect(terms.claimed).to.equal(0);
 
@@ -162,10 +177,11 @@ describe("ERC20 Vesting", async () => {
     });
 
     it("Expected claimable tokens is 0 after startVesting with startTime in future", async () => {
+      const startTime = await blockTimestamp() + 60*60*24;
       await vesting.startVesting(
         owner,
         user,
-        {startTime: await blockTimestamp() + 60*60*24, period: DAY * 30, amount: 30, claimed: 0}
+        {startTime: startTime, period: DAY * 30, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       expect(await vesting.claimable(user)).to.equal(0);
@@ -178,20 +194,22 @@ describe("ERC20 Vesting", async () => {
         owner,
         [user, user2],
         [
-          {startTime: startTime + 1, period: period - 1, amount: 60, claimed: 0},
-          {startTime: startTime, period: period, amount: 30, claimed: 0}
+          {startTime: startTime + 1, period: period - 1, firstClaimableAt: startTime + 1, amount: 60, claimed: 0},
+          {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
         ]
       );
 
       const terms:VestingTerms = await vesting.getVestingTerms(user);
       expect(terms.amount).to.equal(60);
       expect(terms.startTime).to.equal(startTime + 1);
+      expect(terms.firstClaimableAt).to.equal(startTime + 1);
       expect(terms.period).to.equal(period - 1);
       expect(terms.claimed).to.equal(0);
 
       const terms2:VestingTerms = await vesting.getVestingTerms(user2);
       expect(terms2.amount).to.equal(30);
       expect(terms2.startTime).to.equal(startTime);
+      expect(terms2.firstClaimableAt).to.equal(startTime);
       expect(terms2.period).to.equal(period);
       expect(terms2.claimed).to.equal(0);
 
@@ -204,7 +222,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
       await setEvmTime(startTime + period);
       await expect(vesting.stopVesting(owner, user)).to.emit(
@@ -215,6 +233,7 @@ describe("ERC20 Vesting", async () => {
       const terms:VestingTerms = await vesting.getVestingTerms(user);
       expect(terms.amount).to.equal(30);
       expect(terms.startTime).to.equal(startTime);
+      expect(terms.firstClaimableAt).to.equal(startTime);
       expect(terms.period).to.equal(0);
       expect(terms.claimed).to.equal(0);
 
@@ -230,7 +249,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
       await increaseTime(DAY);
       await vesting.claim(user);
@@ -241,6 +260,7 @@ describe("ERC20 Vesting", async () => {
       const terms:VestingTerms = await vesting.getVestingTerms(user);
       expect(terms.amount).to.equal(30);
       expect(terms.startTime).to.equal(startTime);
+      expect(terms.firstClaimableAt).to.equal(startTime);
       expect(terms.period).to.equal(0);
       expect(terms.claimed).to.equal(30);
 
@@ -256,7 +276,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       await increaseTime(period * 2);
@@ -274,7 +294,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       await increaseTime(period / 2);
@@ -288,7 +308,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       await increaseTime(period / 2);
@@ -302,7 +322,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       await increaseTime(period / 2);
@@ -316,7 +336,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
 
       await increaseTime(period / 2);
@@ -330,6 +350,69 @@ describe("ERC20 Vesting", async () => {
       expect(+await vesting.claimable(user)).to.be.within(1, 1.1);
     });
 
+    it("Expected state with firstClaimableAt in the middle of the period", async () => {
+      const startTime = await blockTimestamp();
+      const period = DAY * 30;
+      const firstClaimableAt = startTime + (period / 2);
+
+      await expect(vesting.startVesting(
+        owner,
+        user,
+        {startTime: startTime, period: period, firstClaimableAt: firstClaimableAt, amount: 30, claimed: 0}
+      )).to.emit(vesting.contract, "VestingAdded").withArgs(
+        addressOf(user), 
+        [startTime, period, firstClaimableAt, vesting.toBigNum(30), 0]
+      );
+
+      const terms:VestingTerms = await vesting.getVestingTerms(user);
+      expect(terms.amount).to.equal(30);
+      expect(terms.startTime).to.equal(startTime);
+      expect(terms.firstClaimableAt).to.equal(firstClaimableAt);
+      expect(terms.period).to.equal(period);
+      expect(terms.claimed).to.equal(0);
+
+      expect(+await token.balanceOf(owner)).to.equal(270);
+
+      await setEvmTime(startTime + (period /4));
+      expect(+await vesting.claimable(user)).to.be.equal(0);
+
+      await setEvmTime(startTime + (period / 2));
+      expect(+await vesting.claimable(user)).to.be.equal(15);
+    });
+
+    it("Expected state with firstClaimableAt at the end of the period", async () => {
+      const startTime = await blockTimestamp();
+      const period = DAY * 30;
+      const firstClaimableAt = startTime + period;
+
+      await expect(vesting.startVesting(
+        owner,
+        user,
+        {startTime: startTime, period: period, firstClaimableAt: firstClaimableAt, amount: 30, claimed: 0}
+      )).to.emit(vesting.contract, "VestingAdded").withArgs(
+        addressOf(user), 
+        [startTime, period, firstClaimableAt, vesting.toBigNum(30), 0]
+      );
+
+      const terms:VestingTerms = await vesting.getVestingTerms(user);
+      expect(terms.amount).to.equal(30);
+      expect(terms.startTime).to.equal(startTime);
+      expect(terms.firstClaimableAt).to.equal(firstClaimableAt);
+      expect(terms.period).to.equal(period);
+      expect(terms.claimed).to.equal(0);
+
+      expect(+await token.balanceOf(owner)).to.equal(270);
+
+      await setEvmTime(startTime + (period / 4));
+      expect(+await vesting.claimable(user)).to.be.equal(0);
+
+      await setEvmTime(startTime + (period / 2));
+      expect(+await vesting.claimable(user)).to.be.equal(0);
+
+      await setEvmTime(startTime + period + 1);
+      expect(+await vesting.claimable(user)).to.be.equal(30);
+    });
+
   });
 
   describe("Transfer vesting", async () => {
@@ -339,7 +422,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
       expect(+await token.balanceOf(owner)).to.equal(270);
 
@@ -367,7 +450,7 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
       expect(+await token.balanceOf(owner)).to.equal(270);
 
@@ -384,12 +467,14 @@ describe("ERC20 Vesting", async () => {
       const terms1:VestingTerms = await vesting.getVestingTerms(user);
       expect(terms1.amount).to.equal(0);
       expect(terms1.startTime).to.equal(0);
+      expect(terms1.firstClaimableAt).to.equal(0);
       expect(terms1.period).to.equal(0);
       expect(terms1.claimed).to.equal(0);
 
       const terms2:VestingTerms = await vesting.getVestingTerms(user2);
       expect(terms2.amount).to.equal(30);
       expect(terms2.startTime).to.equal(startTime);
+      expect(terms2.firstClaimableAt).to.equal(startTime);
       expect(terms2.period).to.equal(period);
       expect(terms2.claimed).to.equal(30);
     });
@@ -400,12 +485,12 @@ describe("ERC20 Vesting", async () => {
       await vesting.startVesting(
         owner,
         user,
-        {startTime: startTime, period: period, amount: 30, claimed: 0}
+        {startTime: startTime, period: period, firstClaimableAt: startTime, amount: 30, claimed: 0}
       );
       await vesting.startVesting(
         owner,
         user2,
-        {startTime: startTime + 10, period: period + 10, amount: 10, claimed: 0}
+        {startTime: startTime + 10, period: period + 10, firstClaimableAt: startTime + 10, amount: 10, claimed: 0}
       );
       expect(+await token.balanceOf(owner)).to.equal(260);
 
@@ -414,12 +499,14 @@ describe("ERC20 Vesting", async () => {
       const terms1:VestingTerms = await vesting.getVestingTerms(user);
       expect(terms1.amount).to.equal(30);
       expect(terms1.startTime).to.equal(startTime);
+      expect(terms1.firstClaimableAt).to.equal(startTime);
       expect(terms1.period).to.equal(period);
       expect(terms1.claimed).to.equal(0);
 
       const terms2:VestingTerms = await vesting.getVestingTerms(user2);
       expect(terms2.amount).to.equal(10);
       expect(terms2.startTime).to.equal(startTime + 10);
+      expect(terms2.firstClaimableAt).to.equal(startTime + 10);
       expect(terms2.period).to.equal(period + 10);
       expect(terms2.claimed).to.equal(0);
     });
