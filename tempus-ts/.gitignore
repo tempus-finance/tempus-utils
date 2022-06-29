@@ -3,4 +3,4 @@
 node_modules
 
 # Build generated files
-lib
+ts
