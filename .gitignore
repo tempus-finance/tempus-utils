@@ -3,4 +3,4 @@ abi-artifacts/*
 artifacts/*
 cache/*
 .vscode/*
-build/*
+dist/*
