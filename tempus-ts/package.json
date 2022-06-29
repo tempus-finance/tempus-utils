@@ -1,30 +1,42 @@
 {
-  "name": "@tempus/pool-sdk",
-  "version": "2.0.0",
-  "description": "Tempus Protocol TypeScript SDK",
-  "main": "lib/index.ts",
-  "types": "lib/index.d.ts",
-  "files": [ "tempus",  "utils" ],
-  "scripts": {
-    "prepack": "npx tsc",
-    "prepublish": "npx tsc"
-  },
+  "name": "@tempus-labs/utils",
+  "description": "Tempus utility helpers",
+  "version": "1.0.2",
+  "files": [
+    "/ts/**/*.*"
+  ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tempus-finance/tempus-protocol.git"
+    "url": "git@github.com:tempus-finance/tempus-utils.git"
   },
   "keywords": [
     "tempus",
-    "finance",
-    "protocol",
-    "tempus finance",
-    "tempus protocol",
-    "sdk"
+    "ethereum",
+    "typescript",
+    "helpers",
+    "utilities"
   ],
-  "author": "Tempus Labs",
-  "license": "UNLICENSED",
-  "bugs": {
-    "url": "https://github.com/tempus-finance/tempus-protocol/issues"
-  },
-  "homepage": "https://github.com/tempus-finance/tempus-protocol"
+  "author": "Tempus",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomiclabs/hardhat-waffle": "2.0.3",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.2.0",
+    "@types/chai": "^4.2.17",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^15.0.1",
+    "chai": "^4.3.4",
+    "chalk": "^4.1.2",
+    "cross-env": "^7.0.3",
+    "decimal.js": "^10.3.1",
+    "dotenv": "^10.0.0",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.1",
+    "hardhat": "^2.2.1",
+    "hardhat-abi-exporter": "^2.2.1",
+    "prettier": "^2.2.1",
+    "ts-node": "^10.8.1",
+    "typechain": "^5.1.1",
+    "typescript": "^4.2.4"
+  }
 }

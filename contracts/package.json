@@ -1,5 +1,23 @@
 {
-  "description": "Tempus shared utility contracts and helpers",
+  "name": "@tempus-labs/contracts",
+  "description": "Tempus shared utility contracts",
+  "version": "1.0.0",
+  "files": [
+    "**/*.sol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:tempus-finance/tempus-utils.git"
+  },
+  "keywords": [
+    "tempus",
+    "ethereum",
+    "smart",
+    "contracts",
+    "utilities"
+  ],
+  "author": "Tempus",
+  "license": "MIT",
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0"
   },
