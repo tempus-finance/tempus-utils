@@ -14,10 +14,7 @@ export type Addressable = Signer|string|ContractBase|Contract;
 export function addressOf(addressable: Addressable): string {
   if (typeof(addressable) === "string")
     return addressable;
-  if (addressable instanceof ContractBase || addressable instanceof Contract ||
-      addressable instanceof signers.SignerWithAddress)
-    return addressable.address;
-  throw new Error("Invalid addressable (no address): " + addressable);
+  return addressable.address;
 }
 
 /**
