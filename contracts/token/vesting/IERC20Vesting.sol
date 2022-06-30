@@ -10,6 +10,8 @@ interface IERC20Vesting {
         uint256 startTime;
         /// @dev vesting Period
         uint256 period;
+        /// @dev time after which tokens will be claimable, acts as a vesting clif
+        uint256 firstClaimableAt;
         /// @dev total amount of tokens to vest over period
         uint256 amount;
         /// @dev how much was claimed so far
