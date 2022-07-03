@@ -1,13 +1,13 @@
 {
   "name": "@tempus-labs/utils",
   "description": "Tempus utility helpers",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "files": [
     "/ts/**/*.*"
   ],
   "repository": {
     "type": "git",
-    "url": "git@github.com:tempus-finance/tempus-utils.git"
+    "url": "git@github.com:tempus-finance/tempus-utils.git/tempus-ts"
   },
   "keywords": [
     "tempus",
@@ -16,8 +16,15 @@
     "helpers",
     "utilities"
   ],
-  "author": "Tempus",
+  "author": "Tempus Labs",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "test": "",
+    "lint": "",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-waffle": "2.0.3",
     "@typechain/ethers-v5": "^7.0.1",
@@ -25,7 +32,8 @@
     "@types/chai": "^4.2.17",
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.0.1",
-    "chai": "^4.3.4",
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
     "chalk": "^4.1.2",
     "cross-env": "^7.0.3",
     "decimal.js": "^10.3.1",

@@ -16,7 +16,7 @@
     "contracts",
     "utilities"
   ],
-  "author": "Tempus",
+  "author": "Tempus Labs",
   "license": "MIT",
   "dependencies": {
     "@openzeppelin/contracts": "^4.1.0"
