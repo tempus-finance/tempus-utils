@@ -1,11 +1,11 @@
 import "@nomiclabs/hardhat-ethers"; // hardhat.ethers
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
+import { Contract, Wallet } from "ethers";
 import { DecimalConvertible } from "./DecimalConvertible";
 import * as signers from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 /** Alias for ethers Signer with Address */
-export type Signer = signers.SignerWithAddress;
+export type Signer = signers.SignerWithAddress|Wallet;
 
 /** Alias for all types that can provide an address to the contracts. @see addressOf(addressable) */
 export type Addressable = Signer|string|ContractBase|Contract;
