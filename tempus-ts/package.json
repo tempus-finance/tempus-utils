@@ -1,7 +1,7 @@
 {
   "name": "@tempus-labs/utils",
   "description": "Tempus utility helpers",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "files": [
     "/ts/**/*.*"
   ],
