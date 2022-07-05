@@ -1,7 +1,7 @@
 {
   "name": "@tempus-labs/contracts",
   "description": "Tempus shared utility contracts",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "files": [
     "**/*.sol"
   ],
