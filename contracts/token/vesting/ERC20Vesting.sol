@@ -10,7 +10,8 @@ contract ERC20Vesting is IERC20Vesting {
 
     address public immutable override wallet;
     IERC20 public immutable override token;
-    mapping(address => VestingTerms) private vestingTerms;
+    mapping(address => uint256) public nextTermsId;
+    mapping(address => mapping(uint256 => VestingTerms)) private vestingTerms;
 
     modifier onlyWallet() {
         require(msg.sender == wallet, "Only wallet is allowed to proceed");
@@ -27,8 +28,8 @@ contract ERC20Vesting is IERC20Vesting {
         wallet = _wallet;
     }
 
-    function getVestingTerms(address receiver) external view override returns (VestingTerms memory) {
-        return vestingTerms[receiver];
+    function getVestingTerms(address receiver, uint256 termsId) external view override returns (VestingTerms memory) {
+        return vestingTerms[receiver][termsId];
     }
 
     function startVesting(address receiver, VestingTerms calldata terms) public override onlyWallet {
@@ -40,12 +41,12 @@ contract ERC20Vesting is IERC20Vesting {
         require(terms.period > 0, "Period must be set.");
         require(terms.claimed == 0, "Can not start vesting with already claimed tokens.");
         assert(isScheduleValid(terms));
-        require(!isScheduleValid(vestingTerms[receiver]), "Vesting already started for account.");
 
-        vestingTerms[receiver] = terms;
+        uint256 currentId = nextTermsId[receiver]++;
+        vestingTerms[receiver][currentId] = terms;
         token.safeTransferFrom(wallet, address(this), terms.amount);
 
-        emit VestingAdded(receiver, terms);
+        emit VestingAdded(receiver, currentId, terms);
     }
 
     function startVestingBatch(address[] calldata receivers, VestingTerms[] calldata terms)
@@ -61,13 +62,13 @@ contract ERC20Vesting is IERC20Vesting {
         }
     }
 
-    function claim() external override {
-        claim(type(uint256).max);
+    function claim(uint256 termsId) external override {
+        claim(termsId, type(uint256).max);
     }
 
-    function claim(uint256 value) public override {
+    function claim(uint256 termsId, uint256 value) public override {
         require(value > 0, "Claiming 0 tokens.");
-        VestingTerms memory terms = vestingTerms[msg.sender];
+        VestingTerms memory terms = vestingTerms[msg.sender][termsId];
         require(isScheduleValid(terms), "No vesting data for sender.");
 
         uint256 claimableTokens = _claimable(terms);
@@ -77,25 +78,25 @@ contract ERC20Vesting is IERC20Vesting {
             require(value <= claimableTokens, "Claiming amount exceeds allowed tokens.");
         }
 
-        vestingTerms[msg.sender].claimed += value;
+        vestingTerms[msg.sender][termsId].claimed += value;
         token.safeTransfer(msg.sender, value);
 
-        emit VestingClaimed(msg.sender, value);
+        emit VestingClaimed(msg.sender, termsId, value);
     }
 
-    function transferVesting(address oldAddress, address newAddress) external override onlyWallet {
+    function transferVesting(address oldAddress, uint256 oldTermsId, address newAddress) external override onlyWallet {
         require(newAddress != address(0), "Receiver cannot be 0.");
-        require(!isScheduleValid(vestingTerms[newAddress]), "Vesting already started for receiver.");
-        vestingTerms[newAddress] = vestingTerms[oldAddress];
-        delete vestingTerms[oldAddress];
+        uint256 currentId = nextTermsId[newAddress]++;
+        vestingTerms[newAddress][currentId] = vestingTerms[oldAddress][oldTermsId];
+        delete vestingTerms[oldAddress][oldTermsId];
 
-        emit VestingTransferred(oldAddress, newAddress);
+        emit VestingTransferred(oldAddress, oldTermsId, newAddress, currentId);
     }
 
-    function stopVesting(address receiver) external override onlyWallet {
+    function stopVesting(address receiver, uint256 termsId) external override onlyWallet {
         require(receiver != address(0), "Receiver cannot be 0.");
 
-        VestingTerms storage terms = vestingTerms[receiver];
+        VestingTerms storage terms = vestingTerms[receiver][termsId];
         require(isScheduleValid(terms), "No vesting data for receiver.");
 
         uint256 claimableTokens = _claimable(terms);
@@ -111,11 +112,11 @@ contract ERC20Vesting is IERC20Vesting {
             token.safeTransfer(wallet, revokedTokens);
         }
 
-        emit VestingRemoved(receiver);
+        emit VestingRemoved(receiver, termsId);
     }
 
-    function claimable(address receiver) external view override returns (uint256) {
-        VestingTerms memory terms = vestingTerms[receiver];
+    function claimable(address receiver, uint256 termsId) external view override returns (uint256) {
+        VestingTerms memory terms = vestingTerms[receiver][termsId];
         require(isScheduleValid(terms), "No vesting data for receiver.");
         return _claimable(terms);
     }
