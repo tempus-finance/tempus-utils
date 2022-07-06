@@ -45,6 +45,10 @@ export class ERC20Vesting extends ContractBase {
     return this.contract.token();
   }
 
+  async nextTermsId(receiver: Addressable): Promise<Numberish> {
+    return this.contract.nextTermsId(addressOf(receiver));
+  }
+
   async startVesting(
     sender:Signer, 
     receiver:Addressable,
@@ -75,8 +79,8 @@ export class ERC20Vesting extends ContractBase {
     return this.connect(sender).startVestingBatch(receiverAddrs, convertedTerms);
   }
 
-  async getVestingTerms(receiver:Addressable): Promise<VestingTerms> {
-    const terms = await this.contract.getVestingTerms(addressOf(receiver));
+  async getVestingTerms(receiver:Addressable, termsId:Numberish): Promise<VestingTerms> {
+    const terms = await this.contract.getVestingTerms(addressOf(receiver), termsId);
     return {
       startTime: terms.startTime,
       period: terms.period,
@@ -86,23 +90,23 @@ export class ERC20Vesting extends ContractBase {
     }
   }
 
-  async stopVesting(sender:Signer, receiver:Addressable): Promise<Transaction> {
-    return this.connect(sender).stopVesting(addressOf(receiver));
+  async stopVesting(sender:Signer, receiver:Addressable, termsId:Numberish): Promise<Transaction> {
+    return this.connect(sender).stopVesting(addressOf(receiver), termsId);
   }
 
-  async transferVesting(sender:Signer, oldAddress:Addressable, newAddress:Addressable): Promise<Transaction> {
-    return this.connect(sender).transferVesting(addressOf(oldAddress), addressOf(newAddress));
+  async transferVesting(sender:Signer, oldAddress:Addressable, oldTermsId:Numberish, newAddress:Addressable): Promise<Transaction> {
+    return this.connect(sender).transferVesting(addressOf(oldAddress), oldTermsId, addressOf(newAddress));
   }
 
-  async claimable(receiver:Addressable): Promise<Numberish> {
-    return this.fromBigNum(await this.contract.claimable(addressOf(receiver)));
+  async claimable(receiver:Addressable, termsId:Numberish): Promise<Numberish> {
+    return this.fromBigNum(await this.contract.claimable(addressOf(receiver), termsId));
   }
 
-  async claim(sender:Signer, amount?:Numberish): Promise<any> {
+  async claim(sender:Signer, termsId:Numberish, amount?:Numberish): Promise<any> {
     if (amount === undefined) {
-      return this.connect(sender)['claim()']();
+      return this.connect(sender)['claim(uint256)'](termsId);
     } else {
-      return this.connect(sender)['claim(uint256)'](this.toBigNum(amount));
+      return this.connect(sender)['claim(uint256,uint256)'](termsId, this.toBigNum(amount));
     }
   }
 }
